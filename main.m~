@@ -99,9 +99,9 @@ for i = 1:time.T/time.Ts-dim.N
     prob.Constraints.cons2 = u <= 1;
     prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) <= [pi/4, pi/4]';
     prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) >= -[pi/4, pi/4]';
+     
     problem = prob2struct(prob);
     
-    problem.options = optimoptions('quadprog', 'Display', 'iter');
     [sol, fval, exitflag, output, lambda] = quadprog(problem);
     
     

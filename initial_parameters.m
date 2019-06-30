@@ -21,10 +21,11 @@ param.I = (2/5)*param.m*param.r^2; %Moment of Inertia sphere
 
 
 %% MPC values
-dim.N = 5;                                 % horizon length
+dim.N = 2;                                 % horizon length
 time.t = length(time.tspan) - dim.N;         % time length
 time.t_sim = time.tspan(1:time.t);
 
 weight.Q = eye(dim.nx);
+weight.Q(3,3) = 1000;
 weight.R = eye(dim.nu);
 weight.P = zeros(dim.nx); 
