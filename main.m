@@ -66,8 +66,6 @@ t = time.tspan(1:dim.max_t);
 
 %% Constraints & Minimization problem
 
-constraints
-
 y = zeros(dim.ny,time.T/time.Ts-dim.N+1);      %Initialize y
 x = zeros(dim.nx,time.T/time.Ts-dim.N+1);      %Initialize state matrix
 x(:,1) = zeros(12,1);
@@ -109,6 +107,7 @@ for i = 1:time.T/time.Ts-dim.N
     
     J(:,i) = 0.5*sol'*H*sol + h'*sol + const;
     u_rec(:,i) = sol(1:dim.nu);
+   
     %z_rec(:,i) = z(1:dim.nu);
     
     x(:,i+1) = LTI.A*LTI.x0+LTI.B*u_rec(:,i); 
@@ -123,7 +122,7 @@ end
 delta_J(:) = J(2:end) - J(1:end-1);
 delete(f)
 %% 
-
+%{
 disp('Plotting figures...')
 
 %driver_calculations
@@ -131,4 +130,4 @@ disp('Plotting figures...')
 driver_plots
 
 Visualization
-
+%}
