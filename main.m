@@ -40,7 +40,7 @@ LTI.C = [eye(6), zeros(6,6)];
 
 sys = ss(LTI.A,LTI.B,LTI.C,0);
 
-dsys = c2d(sys,time.T);
+dsys = c2d(sys,time.Ts);
 LTI.A = dsys.A;
 LTI.B = dsys.B;
 LTI.C = dsys.C;
@@ -88,22 +88,28 @@ for i = 1:time.T/time.Ts-dim.N
     N = dim.N; 
 
     % Works for N = 3, dont know why
-%     z = fmincon(@(x)fun(x,H,h, const, dim), zeros(dim.nu*dim.N,1));
-%     sol = z;
+%      z = fmincon(@(x)fun(x,H,h, const, dim), zeros(dim.nu*dim.N,1));
+%      sol2 = z;
     
     u = optimvar('u', dim.nu*dim.N);
     prob = optimproblem('Objective', fun(u,H, h, const, dim), 'ObjectiveSense', 'min');
     prob.Constraints.cons1 = u >= -param.m*param.g/4;
     prob.Constraints.cons2 = u <= 1;
-    prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) <= [pi/4, pi/4]';
-    prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) >= -[pi/4, pi/4]';
+    %prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) <= [pi/4, pi/4]';
+    %prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) >= -[pi/4, pi/4]';
     problem = prob2struct(prob);
     
     problem.options = optimoptions('quadprog', 'Display', 'iter');
     [sol, fval, exitflag, output, lambda] = quadprog(problem);
     
-    
-    
+     cvx_begin quiet
+        variable z(nu*N,1)
+        minimize (0.5*z'*H*z + h'*z + const)
+        subject to
+            %Iu*u < I_const;
+            %Cz*(T_state*LTI.x0 + S_state*u) < state_constr;
+    cvx_end
+    z_rec(:,i) = z(1:dim.nu);
     
     J(:,i) = 0.5*sol'*H*sol + h'*sol + const;
     u_rec(:,i) = sol(1:dim.nu);
@@ -122,7 +128,7 @@ end
 delta_J(:) = J(2:end) - J(1:end-1);
 delete(f)
 %% 
-%{
+
 disp('Plotting figures...')
 
 %driver_calculations
@@ -130,4 +136,4 @@ disp('Plotting figures...')
 driver_plots
 
 Visualization
-%}
+

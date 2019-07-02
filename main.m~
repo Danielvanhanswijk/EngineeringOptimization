@@ -88,21 +88,21 @@ for i = 1:time.T/time.Ts-dim.N
     N = dim.N; 
 
     % Works for N = 3, dont know why
-%     z = fmincon(@(x)fun(x,H,h, const, dim), zeros(dim.nu*dim.N,1));
+     z = fmincon(@(x)fun(x,H,h, const, dim), zeros(dim.nu*dim.N,1));
 %     sol = z;
     
     u = optimvar('u', dim.nu*dim.N);
-    prob = optimproblem('Objective', fun(u,H, h, const, dim), 'ObjectiveSense', 'min');
+    prob = optimproblem('Objective', fun(u,H, h, const, dim,i), 'ObjectiveSense', 'min');
     prob.Constraints.cons1 = u >= -param.m*param.g/4;
     prob.Constraints.cons2 = u <= 1;
-    prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) <= [pi/4, pi/4]';
-    prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) >= -[pi/4, pi/4]';
+    %prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) <= [pi/4, pi/4]';
+    %prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) >= -[pi/4, pi/4]';
     problem = prob2struct(prob);
     
     problem.options = optimoptions('quadprog', 'Display', 'iter');
     [sol, fval, exitflag, output, lambda] = quadprog(problem);
     
-    
+    disp(sol)
     
     
     J(:,i) = 0.5*sol'*H*sol + h'*sol + const;
@@ -122,7 +122,7 @@ end
 delta_J(:) = J(2:end) - J(1:end-1);
 delete(f)
 %% 
-%{
+
 disp('Plotting figures...')
 
 %driver_calculations
@@ -130,4 +130,4 @@ disp('Plotting figures...')
 driver_plots
 
 Visualization
-%}
+

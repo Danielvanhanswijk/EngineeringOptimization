@@ -7,7 +7,7 @@ function [xr, yr, zr, psir] = trajectorygen( N_steps, t)
     
     xr = zeros(1,N_steps);
     yr = zeros(1,N_steps);
-    zr =5*ones(1,N_steps);
+    zr = 5*ones(1,N_steps);
     psir = zeros(1,N_steps);
      
 

@@ -15,10 +15,10 @@ LTI.y0 = LTI.C*LTI.x0;
     [H,h,const,T_state,S_state] = premodgen(LTI,param,dim, weight);
     nu = dim.nu;
     N = dim.N; 
-count1 = 0;
-count2 = 0;
+    count1 = 0;
+    count2 = 0;
 
-iii = linspace(-.8, 0.8, 200);
+iii = linspace(-2, 2, 200);
 jjj = iii;
 for ii = iii
     count1 = count1 +1;
@@ -54,11 +54,11 @@ contour(iii,jjj,costfun, 'ShowText', 'On')
 xlabel('first input')
 ylabel('second input')
 hold on
-plot(input1,input2, '*')
+plot3(input1,input2,costfun(row,col), '*')
 
 figure(2)
 waterfall(iii,jjj,costfun)
 xlabel('first input')
 ylabel('second input')
 hold on
-plot(input1,input2, '*')
+plot3(input1,input2,costfun(row,col), '*')
