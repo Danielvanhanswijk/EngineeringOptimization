@@ -16,7 +16,7 @@ param.I = (2/5)*param.m*param.r^2; %Moment of Inertia sphere
 dim.nx=12;
 dim.nu=4;
 dim.ny = 6;
-dim.N=10;                             %receding horizon
+dim.N=5;                             %receding horizon
 dim.t=length(param.tspan)-dim.N;    
 
 param.simultime=param.tspan(1:dim.t); %simulation horizon

@@ -42,7 +42,7 @@ elseif Own_path == 2
 elseif Own_path == 1
             xr = zeros(1,N_steps) ;
             yr = zeros(1,N_steps);
-            zr = ones(1,N_steps);
+            zr = 5*ones(1,N_steps);
             psir = zeros(1,N_steps);
      
      

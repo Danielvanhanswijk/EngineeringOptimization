@@ -18,7 +18,7 @@ hold on
 plot3(y(1,1:end-2),y(2,1:end-2),y(3,1:end-2),'r--')
 plot3(y(1,1), y(2,1), y(3,1), '*')
 hold off
-legend('Predefined trajectory', 'Path traveled by drone', 'Initial position')
+legend('Trajectory', 'Path of the drone', 'Initial position')
 xlabel('x direction (m)')
 ylabel('y direction (m)')
 zlabel('z direction (m)')
@@ -29,21 +29,19 @@ zlabel('z direction (m)')
 figure(3)
 subplot(3,1,1)
 plot(t,xr(1:time.T/time.Ts-dim.N),t,y(1,1:time.T/time.Ts-dim.N))
-legend('reference x direction','path flown by drone')
+legend('reference ','path flown by drone')
 title('x-direction')
 xlabel('time (s)')
 ylabel('x position (m)')
 
 subplot(3,1,2)
 plot(t,yr(1:time.T/time.Ts-dim.N),t,y(2,1:time.T/time.Ts-dim.N))
-legend('reference x direction','path flown by drone')
 title('y-direction')
 xlabel('time (s)')
 ylabel('y position (m)')
 
 subplot(3,1,3)
 plot(t,zr(1:time.T/time.Ts-dim.N),t,y(3,1:time.T/time.Ts-dim.N))
-legend('reference x direction','path flown by drone')
 title('z-direction')
 xlabel('time (s)')
 ylabel('z position (m)')
@@ -98,5 +96,21 @@ subplot(1,2,2)
 plot(delta_J)
 title('V^*(k) - V^*(k+1)')
 
+%% 
+figure(7)
+plot(t,zr(1:time.T/time.Ts-dim.N),t,y(3,1:time.T/time.Ts-dim.N))
+legend('reference x direction','path flown by drone')
+title('z-direction')
+xlabel('time (s)')
+ylabel('z position (m)')
 
 
+%%
+figure(8)
+plot(t,x(4,1:time.T/time.Ts-dim.N));
+hold on
+plot(t,(pi/4)*ones(size(t,2),1), 'r--')
+plot(t,-(pi/4)*ones(size(t,2),1), 'r--')
+title('Angle phi drone')
+legend('angle \phi drone', 'Angle constraint')
+axis([0 15 -1 1])

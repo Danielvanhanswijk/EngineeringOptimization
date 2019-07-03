@@ -1,12 +1,12 @@
 %% Final assignment Engineering optimization
 % Abram Dekker......
-% Daniel van Hanswijk 4351479
+% Daniel van Hanswijk 4351479 
 
 %%
 clear
 close all
 warning off
-
+clc
 %%
 initial_parameters
 
@@ -36,7 +36,8 @@ JA = subs(JsX,[U1, U2, U3, U4],[-param.g*param.m,0,0,0]);
 LTI.A = double(subs(JA,Xs,Xr));
 LTI.B = double(subs(JsU,Xs,Xr));
 LTI.C = [eye(6), zeros(6,6)];
-
+LTI.C = [eye(3), zeros(3,9);...
+        0,0,0,0,0,1,0,0,0,0,0,0];
 
 sys = ss(LTI.A,LTI.B,LTI.C,0);
 
@@ -59,11 +60,16 @@ LTI.B = LTI.B*LTI.B2;
 N_steps = time.T/time.Ts+1;
 
 % Define trajectory        
-[xr, yr, zr, psir] = trajectorygen(N_steps, time.tspan);
+[xr, yr, zr,  psir] = trajectorygen(N_steps, time.tspan);
 
 dim.max_t = length(time.tspan) - dim.N;
 t = time.tspan(1:dim.max_t);
 
+
+%% contour for 2 inputs
+if sum(xr) == 0
+    contour_test
+end
 %% Constraints & Minimization problem
 
 y = zeros(dim.ny,time.T/time.Ts-dim.N+1);      %Initialize y
@@ -72,6 +78,7 @@ x(:,1) = zeros(12,1);
 
 disp('Calculating optimal input sequence ...')
 f = waitbar(0,'','Name','Model Predictive Control');
+tic;
 for i = 1:time.T/time.Ts-dim.N
    
     LTI.x0 = x(:,i);
@@ -79,7 +86,7 @@ for i = 1:time.T/time.Ts-dim.N
   
     
     for k = 1:dim.N
-        LTI.Yr(k+(k-1)*5:k+(k-1)*5+5,1) = [xr(i+k-1);yr(i+k-1);zr(i+k-1);psir(i+k-1);psir(i+k-1);psir(i+k-1)];
+        LTI.Yr(k+(k-1)*3:k+(k-1)*3+3,1) = [xr(i+k-1);yr(i+k-1);zr(i+k-1); psir(i+k-1)];%;psir(i+k-1);psir(i+k-1);psir(i+k-1)
     end
     
     warning off
@@ -93,29 +100,20 @@ for i = 1:time.T/time.Ts-dim.N
     
     u = optimvar('u', dim.nu*dim.N);
     prob = optimproblem('Objective', fun(u,H, h, const, dim), 'ObjectiveSense', 'min');
-    prob.Constraints.cons1 = u >= -param.m*param.g/4;
-    prob.Constraints.cons2 = u <= 1;
-    %prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) <= [pi/4, pi/4]';
-    %prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) >= -[pi/4, pi/4]';
+    prob.Constraints.cons1 = u >= -param.m*param.g*ones(dim.nu*dim.N,1);
+    prob.Constraints.cons2 = u <= (param.m*param.g/4)*ones(dim.nu*dim.N,1);
+    prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) <= [pi/4, pi/4]';
+    prob.Constraints.cons4 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) >= -[pi/4, pi/4]';
     problem = prob2struct(prob);
     
-    problem.options = optimoptions('quadprog', 'Display', 'iter');
+    problem.options = optimoptions('quadprog', 'Display', 'iter', 'OptimalityTolerance', 1e-15);%'Display', 'iter',
     [sol, fval, exitflag, output, lambda] = quadprog(problem);
     
-     cvx_begin quiet
-        variable z(nu*N,1)
-        minimize (0.5*z'*H*z + h'*z + const)
-        subject to
-            %Iu*u < I_const;
-            %Cz*(T_state*LTI.x0 + S_state*u) < state_constr;
-    cvx_end
-    z_rec(:,i) = z(1:dim.nu);
+     val(i) = fval;
     
     J(:,i) = 0.5*sol'*H*sol + h'*sol + const;
     u_rec(:,i) = sol(1:dim.nu);
    
-    %z_rec(:,i) = z(1:dim.nu);
-    
     x(:,i+1) = LTI.A*LTI.x0+LTI.B*u_rec(:,i); 
     y(:,i+1) = LTI.C*x(:,i+1);
     
@@ -124,7 +122,7 @@ for i = 1:time.T/time.Ts-dim.N
     waitbar(i/(time.T/time.Ts-dim.N),f,sprintf('Calculating optimal sequence...'))
    
 end
-
+toc;
 delta_J(:) = J(2:end) - J(1:end-1);
 delete(f)
 %% 
@@ -134,6 +132,8 @@ disp('Plotting figures...')
 %driver_calculations
 
 driver_plots
+% plot(val)
+% axis([0 30  -1e6 100])
 
 Visualization
 

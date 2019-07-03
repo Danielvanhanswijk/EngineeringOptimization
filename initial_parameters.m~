@@ -7,7 +7,7 @@ time.tspan = linspace(0,time.T,time.T*(1/time.Ts));% time span
 %% Dimensions 
 dim.nx = 12;                                % size of states
 dim.nu = 4;                                 % size of inputs
-dim.ny = 4;%6                                 % size of outputs
+dim.ny = 6;                                 % size of outputs
 
 %% parameters drone
 

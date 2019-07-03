@@ -1,12 +1,12 @@
 %% Final assignment Engineering optimization
 % Abram Dekker......
-% Daniel van Hanswijk 4351479
+% Daniel van Hanswijk 4351479 
 
 %%
 clear
 close all
 warning off
-
+clc
 %%
 initial_parameters
 
@@ -36,11 +36,11 @@ JA = subs(JsX,[U1, U2, U3, U4],[-param.g*param.m,0,0,0]);
 LTI.A = double(subs(JA,Xs,Xr));
 LTI.B = double(subs(JsU,Xs,Xr));
 LTI.C = [eye(6), zeros(6,6)];
-
+LTI.C = [eye(3), zeros(3,3)];
 
 sys = ss(LTI.A,LTI.B,LTI.C,0);
 
-dsys = c2d(sys,time.T);
+dsys = c2d(sys,time.Ts);
 LTI.A = dsys.A;
 LTI.B = dsys.B;
 LTI.C = dsys.C;
@@ -59,11 +59,16 @@ LTI.B = LTI.B*LTI.B2;
 N_steps = time.T/time.Ts+1;
 
 % Define trajectory        
-[xr, yr, zr, psir] = trajectorygen(N_steps, time.tspan);
+[xr, yr, zr] = trajectorygen(N_steps, time.tspan);%, psir
 
 dim.max_t = length(time.tspan) - dim.N;
 t = time.tspan(1:dim.max_t);
 
+
+%% contour for 2 inputs
+if sum(xr) == 0
+    contour_test
+end
 %% Constraints & Minimization problem
 
 y = zeros(dim.ny,time.T/time.Ts-dim.N+1);      %Initialize y
@@ -79,7 +84,7 @@ for i = 1:time.T/time.Ts-dim.N
   
     
     for k = 1:dim.N
-        LTI.Yr(k+(k-1)*5:k+(k-1)*5+5,1) = [xr(i+k-1);yr(i+k-1);zr(i+k-1);psir(i+k-1);psir(i+k-1);psir(i+k-1)];
+        LTI.Yr(k+(k-1)*5:k+(k-1)*5+5,1) = [xr(i+k-1);yr(i+k-1);zr(i+k-1)];%;psir(i+k-1);psir(i+k-1);psir(i+k-1)
     end
     
     warning off
@@ -88,28 +93,25 @@ for i = 1:time.T/time.Ts-dim.N
     N = dim.N; 
 
     % Works for N = 3, dont know why
-     z = fmincon(@(x)fun(x,H,h, const, dim), zeros(dim.nu*dim.N,1));
-%     sol = z;
+%      z = fmincon(@(x)fun(x,H,h, const, dim), zeros(dim.nu*dim.N,1));
+%      sol2 = z;
     
     u = optimvar('u', dim.nu*dim.N);
-    prob = optimproblem('Objective', fun(u,H, h, const, dim,i), 'ObjectiveSense', 'min');
-    prob.Constraints.cons1 = u >= -param.m*param.g/4;
-    prob.Constraints.cons2 = u <= 1;
-    %prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) <= [pi/4, pi/4]';
-    %prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) >= -[pi/4, pi/4]';
+    prob = optimproblem('Objective', fun(u,H, h, const, dim), 'ObjectiveSense', 'min');
+    prob.Constraints.cons1 = u >= -param.m*param.g*ones(dim.nu*dim.N,1);
+    prob.Constraints.cons2 = u <= (param.m*param.g/4)*ones(dim.nu*dim.N,1);
+    prob.Constraints.cons3 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) <= [pi/2, pi/2]';
+    prob.Constraints.cons4 =  LTI.A(4:5,:)*LTI.x0+LTI.B(4:5,:)*u(1:4) >= -[pi/2, pi/2]';
     problem = prob2struct(prob);
     
     problem.options = optimoptions('quadprog', 'Display', 'iter');
     [sol, fval, exitflag, output, lambda] = quadprog(problem);
     
-    disp(sol)
-    
+     
     
     J(:,i) = 0.5*sol'*H*sol + h'*sol + const;
     u_rec(:,i) = sol(1:dim.nu);
    
-    %z_rec(:,i) = z(1:dim.nu);
-    
     x(:,i+1) = LTI.A*LTI.x0+LTI.B*u_rec(:,i); 
     y(:,i+1) = LTI.C*x(:,i+1);
     
@@ -129,5 +131,5 @@ disp('Plotting figures...')
 
 driver_plots
 
-Visualization
+%Visualization
 
